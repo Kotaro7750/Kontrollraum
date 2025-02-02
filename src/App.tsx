@@ -1,10 +1,11 @@
-import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import AppBar from './components/AppBar';
 
 function App() {
   return (
-    <>
-      <Button variant="contained">Hello World</Button>
-    </>
+    <Box>
+      <AppBar />
+    </Box>
   )
 }
 
