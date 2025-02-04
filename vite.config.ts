@@ -10,6 +10,7 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
+      injectRegister: null,
       registerType: 'autoUpdate',
       manifest: {
         name: 'Kontrollroum',
