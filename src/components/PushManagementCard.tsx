@@ -1,5 +1,6 @@
-import { Box, Button, Card, Alert, Snackbar } from "@mui/material";
+import { Box, Button, Card, Alert, Snackbar, CardContent, Typography, CardActions } from "@mui/material";
 import { useEffect, useState } from "react";
+import StatusMessage from "./StatusMessage";
 
 const applicationServerPublicKey = 'BPq1UzUTXrajUy4s8RFRjzLJC3TLN2Tz6tgeWdGrzqshmybNmWYbVZMJnxuKFbqeFf2DYvnl_Z6tSn49Yu5Aobw';
 
@@ -66,13 +67,24 @@ export default function PushManagementCard(props: Props) {
   return (
     <Box>
       <Card>
-        {
-          serviceWorker ?
-            <Button variant="contained" disabled={isSubscribed || isSubscribing} onClick={() => { subscribeUser(serviceWorker) }}>
-              Enable Push Messaging
-            </Button>
-            : 'Service Worker is not available'
-        }
+        <CardContent>
+          <Typography variant="h5" component="div">
+            Push Notification
+          </Typography>
+
+          <StatusMessage status={serviceWorker ? 'success' : 'error'} message="ServiceWorker Registration" />
+          <StatusMessage status={isSubscribed ? 'success' : 'error'} message="Push Notification Subscription" />
+        </CardContent>
+
+        <CardActions>
+          {
+            serviceWorker ?
+              <Button size="small" variant="contained" disabled={isSubscribed || isSubscribing} onClick={() => { subscribeUser(serviceWorker) }}>
+                Enable Push Messaging
+              </Button>
+              : null
+          }
+        </CardActions>
       </Card>
       <Snackbar open={showError} autoHideDuration={3000} onClose={() => setShowError(false)}>
         <Alert onClose={() => setShowError(false)} severity="error">
