@@ -51,8 +51,9 @@ export default function PushManagementCard(props: Props) {
       userVisibleOnly: true,
       applicationServerKey: applicationServerKey
     })
-      .then(function() {
+      .then(function(subscription) {
         console.log('User is subscribed.');
+        console.log(JSON.stringify(subscription));
       })
       .catch(function(error) {
         setShowError(true);
