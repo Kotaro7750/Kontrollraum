@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import AppBar from './components/AppBar';
 import { useState, useEffect } from 'react';
+import PushManagementCard from './components/PushManagementCard';
 
 function App() {
   const [serviceWorker, setServiceWorker] = useState<ServiceWorkerRegistration | null>(null);
@@ -33,6 +34,7 @@ function App() {
   return (
     <Box>
       <AppBar />
+      <PushManagementCard serviceWorker={serviceWorker} />
     </Box>
   )
 }
