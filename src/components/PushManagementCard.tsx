@@ -2,8 +2,8 @@ import { Box, Button, Card, Alert, Snackbar, CardContent, Typography, CardAction
 import { useEffect, useState } from "react";
 import StatusMessage from "./StatusMessage";
 
-const applicationServerPublicKey = 'BPq1UzUTXrajUy4s8RFRjzLJC3TLN2Tz6tgeWdGrzqshmybNmWYbVZMJnxuKFbqeFf2DYvnl_Z6tSn49Yu5Aobw';
-
+const applicationServerPublicKeyEndpoint = import.meta.env.VITE_APP_SERVER_PUBLIC_KEY_ENDPOINT || "";
+const applicationServerSubscriptionEndpoint = import.meta.env.VITE_APP_SERVER_POST_SUBSCRIPTION_ENDPOINT || "";
 
 const urlB64ToUint8Array = (base64String: string) => {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -46,14 +46,28 @@ export default function PushManagementCard(props: Props) {
   const subscribeUser = (serviceWorker: ServiceWorkerRegistration) => {
     setIsSubscribing(true);
 
-    const applicationServerKey = urlB64ToUint8Array(applicationServerPublicKey);
-    serviceWorker.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: applicationServerKey
-    })
+    fetch(applicationServerPublicKeyEndpoint)
+      .then(response => response.text())
+      .then(publicKey => {
+        console.log('Public Key:', publicKey);
+        const applicationServerKey = urlB64ToUint8Array(publicKey);
+
+        return serviceWorker.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationServerKey
+        })
+      })
       .then(function(subscription) {
         console.log('User is subscribed.');
         console.log(JSON.stringify(subscription));
+
+        return fetch(applicationServerSubscriptionEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(subscription)
+        });
       })
       .catch(function(error) {
         setShowError(true);
