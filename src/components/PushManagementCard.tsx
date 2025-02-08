@@ -1,9 +1,7 @@
 import { Box, Button, Card, Alert, Snackbar, CardContent, Typography, CardActions } from "@mui/material";
 import { useEffect, useState } from "react";
+import useConfig from "../useConfig"
 import StatusMessage from "./StatusMessage";
-
-const applicationServerPublicKeyEndpoint = import.meta.env.VITE_APP_SERVER_PUBLIC_KEY_ENDPOINT || "";
-const applicationServerSubscriptionEndpoint = import.meta.env.VITE_APP_SERVER_POST_SUBSCRIPTION_ENDPOINT || "";
 
 const urlB64ToUint8Array = (base64String: string) => {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -46,7 +44,14 @@ export default function PushManagementCard(props: Props) {
   const subscribeUser = (serviceWorker: ServiceWorkerRegistration) => {
     setIsSubscribing(true);
 
-    fetch(applicationServerPublicKeyEndpoint)
+    let pushAppServerSubscriptionEndPoint: string;
+
+    useConfig()
+      .then(config => {
+        pushAppServerSubscriptionEndPoint = config.pushAppServerSubscriptionEndPoint;
+
+        return fetch(config.pushAppServerPublicKeyEndPoint)
+      })
       .then(response => response.text())
       .then(publicKey => {
         console.log('Public Key:', publicKey);
@@ -61,7 +66,7 @@ export default function PushManagementCard(props: Props) {
         console.log('User is subscribed.');
         console.log(JSON.stringify(subscription));
 
-        return fetch(applicationServerSubscriptionEndpoint, {
+        return fetch(pushAppServerSubscriptionEndPoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
