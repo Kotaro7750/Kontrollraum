@@ -23,16 +23,18 @@ type Props = {
 };
 export default function PushManagementCard(props: Props) {
   const serviceWorker = props.serviceWorker;
+  const pushManager = serviceWorker?.pushManager;
+
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [showError, setShowError] = useState(false);
 
   const checkSubscription = () => {
-    if (!serviceWorker) {
+    if (!serviceWorker || !pushManager) {
       return;
     }
 
-    serviceWorker.pushManager.getSubscription().then((subscription) => {
+    pushManager.getSubscription().then((subscription) => {
       setIsSubscribed(!(subscription === null));
     });
   }
@@ -41,7 +43,7 @@ export default function PushManagementCard(props: Props) {
     checkSubscription();
   }, [serviceWorker])
 
-  const subscribeUser = (serviceWorker: ServiceWorkerRegistration) => {
+  const subscribeUser = (pushManager: PushManager) => {
     setIsSubscribing(true);
 
     let pushAppServerSubscriptionEndPoint: string;
@@ -57,7 +59,7 @@ export default function PushManagementCard(props: Props) {
         console.log('Public Key:', publicKey);
         const applicationServerKey = urlB64ToUint8Array(publicKey);
 
-        return serviceWorker.pushManager.subscribe({
+        return pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: applicationServerKey
         })
@@ -93,13 +95,14 @@ export default function PushManagementCard(props: Props) {
           </Typography>
 
           <StatusMessage status={serviceWorker ? 'success' : 'error'} message="ServiceWorker Registration" />
+          <StatusMessage status={pushManager ? 'success' : 'error'} message="Push API Availability" />
           <StatusMessage status={isSubscribed ? 'success' : 'error'} message="Push Notification Subscription" />
         </CardContent>
 
         <CardActions>
           {
-            serviceWorker ?
-              <Button size="small" variant="contained" disabled={isSubscribed || isSubscribing} onClick={() => { subscribeUser(serviceWorker) }}>
+            pushManager ?
+              <Button size="small" variant="contained" disabled={isSubscribed || isSubscribing} onClick={() => { subscribeUser(pushManager) }}>
                 Enable Push Messaging
               </Button>
               : null
