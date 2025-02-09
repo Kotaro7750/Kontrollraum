@@ -54,7 +54,13 @@ export default function PushManagementCard(props: Props) {
 
         return fetch(config.pushAppServerPublicKeyEndPoint)
       })
-      .then(response => response.text())
+      .then(response => {
+        if (!response.ok) {
+          return Promise.reject(`Failed to fetch public key. response: ${response.text}`);
+        }
+
+        return response.text();
+      })
       .then(publicKey => {
         console.log('Public Key:', publicKey);
         const applicationServerKey = urlB64ToUint8Array(publicKey);
@@ -75,6 +81,13 @@ export default function PushManagementCard(props: Props) {
           },
           body: JSON.stringify(subscription)
         });
+      })
+      .then((response) => {
+        if (!response.ok) {
+          return Promise.reject(`Failed to posting subscription. response: ${response.text}`);
+        }
+
+        return Promise.resolve();
       })
       .catch(function(error) {
         setShowError(true);
