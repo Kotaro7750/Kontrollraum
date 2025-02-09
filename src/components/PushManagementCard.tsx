@@ -1,4 +1,4 @@
-import { Box, Button, Card, Alert, Snackbar, CardContent, Typography, CardActions } from "@mui/material";
+import { Box, Button, Card, Alert, Snackbar, CardContent, Typography, CardActions, Stack } from "@mui/material";
 import { useEffect, useState } from "react";
 import useConfig from "../useConfig"
 import StatusMessage from "./StatusMessage";
@@ -25,8 +25,8 @@ export default function PushManagementCard(props: Props) {
   const serviceWorker = props.serviceWorker;
   const pushManager = serviceWorker?.pushManager;
 
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [showError, setShowError] = useState(false);
 
   const checkSubscription = () => {
@@ -35,7 +35,7 @@ export default function PushManagementCard(props: Props) {
     }
 
     pushManager.getSubscription().then((subscription) => {
-      setIsSubscribed(!(subscription === null));
+      setSubscription(subscription);
     });
   }
 
@@ -44,7 +44,7 @@ export default function PushManagementCard(props: Props) {
   }, [serviceWorker])
 
   const subscribeUser = (pushManager: PushManager) => {
-    setIsSubscribing(true);
+    setIsProcessing(true);
 
     let pushAppServerSubscriptionEndPoint: string;
 
@@ -81,7 +81,51 @@ export default function PushManagementCard(props: Props) {
         console.error('Failed to subscribe the user: ', error);
       }).finally(() => {
         checkSubscription();
-        setIsSubscribing(false);
+        setIsProcessing(false);
+      });
+  }
+
+  const unsubscribeUser = (_: PushManager) => {
+    if (!subscription) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    useConfig()
+      .then(config => {
+        return fetch(config.pushAppServerSubscriptionEndPoint, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(subscription)
+        })
+      })
+      .then((response) => {
+        if (response.ok || response.status === 404) {
+          const currentSubscription = subscription;
+          // Ideally, clearing subscription should be done after PushSubscription.unsubscribe() is succeess.
+          // But, unsubscribe() may fail and in such case, subscription in application server is deleted but subscription in push service is not deleted.
+          // In such case, we clear subscription here because aborting is not possible.
+          setSubscription(null);
+          return Promise.resolve(currentSubscription);
+        } else {
+          return Promise.reject('Failed to unsubscribe the user');
+        }
+      })
+      .then((subscription) => {
+        return subscription.unsubscribe()
+      })
+      .then(() => {
+        console.log('User is unsubscribed.');
+      })
+      .catch((error) => {
+        setShowError(true);
+        console.error('Failed to unsubscribe the user: ', error);
+      }).finally(() => {
+        checkSubscription();
+        setIsProcessing(false);
       });
   }
 
@@ -96,15 +140,20 @@ export default function PushManagementCard(props: Props) {
 
           <StatusMessage status={serviceWorker ? 'success' : 'error'} message="ServiceWorker Registration" />
           <StatusMessage status={pushManager ? 'success' : 'error'} message="Push API Availability" />
-          <StatusMessage status={isSubscribed ? 'success' : 'error'} message="Push Notification Subscription" />
+          <StatusMessage status={subscription ? 'success' : 'error'} message="Push Notification Subscription" />
         </CardContent>
 
         <CardActions>
           {
             pushManager ?
-              <Button size="small" variant="contained" disabled={isSubscribed || isSubscribing} onClick={() => { subscribeUser(pushManager) }}>
-                Enable Push Messaging
-              </Button>
+              <Stack direction="row" spacing={1}>
+                <Button size="small" variant="contained" disabled={(subscription !== null) || isProcessing} onClick={() => { subscribeUser(pushManager) }}>
+                  Subscribe
+                </Button>
+                <Button size="small" variant="contained" color="error" disabled={subscription === null || isProcessing} onClick={() => { unsubscribeUser(pushManager) }}>
+                  Unsubscribe
+                </Button>
+              </Stack>
               : null
           }
         </CardActions>
