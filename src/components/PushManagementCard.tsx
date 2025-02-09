@@ -27,7 +27,7 @@ export default function PushManagementCard(props: Props) {
 
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showError, setShowError] = useState(false);
+  const [errorOcurred, setErrorOcurred] = useState<Error | null>(null);
 
   const checkSubscription = () => {
     if (!serviceWorker || !pushManager) {
@@ -89,9 +89,9 @@ export default function PushManagementCard(props: Props) {
 
         return Promise.resolve();
       })
-      .catch(function(error) {
-        setShowError(true);
-        console.error('Failed to subscribe the user: ', error);
+      .catch(function(error: Error) {
+        setErrorOcurred(error);
+        console.error('Failed to subscribe the user: ', error.message);
       }).finally(() => {
         checkSubscription();
         setIsProcessing(false);
@@ -133,9 +133,9 @@ export default function PushManagementCard(props: Props) {
       .then(() => {
         console.log('User is unsubscribed.');
       })
-      .catch((error) => {
-        setShowError(true);
-        console.error('Failed to unsubscribe the user: ', error);
+      .catch((error: Error) => {
+        setErrorOcurred(error);
+        console.error('Failed to unsubscribe the user: ', error.message);
       }).finally(() => {
         checkSubscription();
         setIsProcessing(false);
@@ -171,9 +171,9 @@ export default function PushManagementCard(props: Props) {
           }
         </CardActions>
       </Card>
-      <Snackbar open={showError} autoHideDuration={3000} onClose={() => setShowError(false)}>
-        <Alert onClose={() => setShowError(false)} severity="error">
-          Cannot subscribe to push notifications
+      <Snackbar open={errorOcurred !== null} autoHideDuration={3000} onClose={() => setErrorOcurred(null)}>
+        <Alert onClose={() => setErrorOcurred(null)} severity="error">
+          {errorOcurred?.message}
         </Alert>
       </Snackbar>
     </Box>
