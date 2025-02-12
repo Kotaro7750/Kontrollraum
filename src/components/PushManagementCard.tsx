@@ -1,4 +1,4 @@
-import { Box, Button, Card, Alert, Snackbar, CardContent, Typography, CardActions, Stack } from "@mui/material";
+import { Box, Button, Card, Alert, Snackbar, CardContent, Typography, CardActions, Stack, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from "@mui/material";
 import { useEffect, useState } from "react";
 import useConfig from "../useConfig"
 import StatusMessage from "./StatusMessage";
@@ -28,6 +28,7 @@ export default function PushManagementCard(props: Props) {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorOcurred, setErrorOcurred] = useState<Error | null>(null);
+  const [showUnsbscribeDialog, setShowUnsbscribeDialog] = useState(false);
 
   const checkSubscription = () => {
     if (!serviceWorker || !pushManager) {
@@ -142,6 +143,14 @@ export default function PushManagementCard(props: Props) {
       });
   }
 
+  const handleDialogOpen = () => {
+    setShowUnsbscribeDialog(true);
+  }
+
+  const handleDialogClose = () => {
+    setShowUnsbscribeDialog(false);
+  }
+
 
   return (
     <Box>
@@ -163,9 +172,29 @@ export default function PushManagementCard(props: Props) {
                 <Button size="small" variant="contained" disabled={(subscription !== null) || isProcessing} onClick={() => { subscribeUser(pushManager) }}>
                   Subscribe
                 </Button>
-                <Button size="small" variant="contained" color="error" disabled={subscription === null || isProcessing} onClick={() => { unsubscribeUser(pushManager) }}>
+                <Button size="small" variant="contained" color="error" disabled={subscription === null || isProcessing} onClick={() => { handleDialogOpen() }}>
                   Unsubscribe
                 </Button>
+
+                <Dialog open={showUnsbscribeDialog} onClose={() => setShowUnsbscribeDialog(false)}>
+                  <DialogTitle>Really Unsubscribe Push Notification?</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText>
+                      Unsubscribing push notification will remove your subscription from the server.
+                      You will no longer receive push notifications.
+                      You can subscribe again later.
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={handleDialogClose}>Cancel</Button>
+                    <Button onClick={
+                      () => {
+                        handleDialogClose();
+                        unsubscribeUser(pushManager);
+                      }
+                    } color="error" autoFocus>Unsubscribe</Button>
+                  </DialogActions>
+                </Dialog>
               </Stack>
               : null
           }
