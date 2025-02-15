@@ -18,7 +18,7 @@ self.addEventListener('push', function(event) {
       const dataJson = JSON.parse(event.data.text());
 
       title = dataJson.title ?? title;
-      body = dataJson.body ?? body;
+      body = dataJson.message ?? body;
     } catch (err: unknown) {
       if (err instanceof SyntaxError) {
         console.error('Error parsing JSON', err);
