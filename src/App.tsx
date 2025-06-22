@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import AppBar from './components/AppBar';
 import { useState, useEffect } from 'react';
 import PushManagementCard from './components/PushManagementCard';
+import RakutenSecurityExporterCard from './components/RakutenSecurityExporterCard';
 
 function App() {
   const [serviceWorker, setServiceWorker] = useState<ServiceWorkerRegistration | null>(null);
@@ -34,7 +35,10 @@ function App() {
   return (
     <Box>
       <AppBar />
-      <PushManagementCard serviceWorker={serviceWorker} />
+      <Box sx={{ paddingY: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <PushManagementCard serviceWorker={serviceWorker} />
+        <RakutenSecurityExporterCard />
+      </Box>
     </Box>
   )
 }

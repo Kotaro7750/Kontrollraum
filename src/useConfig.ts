@@ -1,6 +1,8 @@
 type Config = {
   pushAppServerPublicKeyEndPoint: string;
   pushAppServerSubscriptionEndPoint: string;
+  rakutenSecurityAuthStatusEndPoint: string;
+  rakutenSecurityAuthEndPoint: string;
 }
 
 export default function useConfig(): Promise<Config> {
@@ -10,7 +12,9 @@ export default function useConfig(): Promise<Config> {
     case "ENV":
       promise = Promise.resolve({
         pushAppServerPublicKeyEndPoint: import.meta.env.VITE_APP_SERVER_PUBLIC_KEY_ENDPOINT || "",
-        pushAppServerSubscriptionEndPoint: import.meta.env.VITE_APP_SERVER_POST_SUBSCRIPTION_ENDPOINT || ""
+        pushAppServerSubscriptionEndPoint: import.meta.env.VITE_APP_SERVER_POST_SUBSCRIPTION_ENDPOINT || "",
+        rakutenSecurityAuthStatusEndPoint: import.meta.env.VITE_RAKUTEN_SECURITY_AUTH_STATUS_ENDPOINT || "",
+        rakutenSecurityAuthEndPoint: import.meta.env.VITE_RAKUTEN_SECURITY_AUTH_ENDPOINT || ""
       })
       break;
 
@@ -20,7 +24,9 @@ export default function useConfig(): Promise<Config> {
         .then((json) => {
           return {
             pushAppServerPublicKeyEndPoint: json.pushAppServerPublicKeyEndPoint,
-            pushAppServerSubscriptionEndPoint: json.pushAppServerSubscriptionEndPoint
+            pushAppServerSubscriptionEndPoint: json.pushAppServerSubscriptionEndPoint,
+            rakutenSecurityAuthStatusEndPoint: json.rakutenSecurityAuthStatusEndPoint || "",
+            rakutenSecurityAuthEndPoint: json.rakutenSecurityAuthEndPoint || ""
           };
         });
       break;
